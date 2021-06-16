@@ -53,6 +53,7 @@ const schema = buildSchema(`
         createCustomer(name: String!, cpf: Int!): Customer
         deleteCustomer(cpf: Int!): Customer
         updateCustomer(cpf: Int!, name: String!): Customer
+        createDeposit(cpf: Int!, description: String!, amount: Float!): Statement
     }
 `);
 
@@ -70,7 +71,7 @@ const resolvers = {
         name,
         cpf,
         created_at: new Date(),
-        statement: []
+        statements: []
         };
   
         const customerAlreadyExists = customers.some(
@@ -97,6 +98,19 @@ const resolvers = {
         customer.name = name;
 
         return customer;
+    },
+    createDeposit({cpf, description, amount}){
+        const customer = verifyIfExistsAccountCPF(cpf, customers);
+        
+        const statementOperation = {
+            description,
+            amount,
+            created_at: new Date(),
+            type: "credit"
+        }
+
+        customer.statements.push(statementOperation);
+        return statementOperation;
     }
   };
 
