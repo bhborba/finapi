@@ -2,7 +2,9 @@ const express = require("express");
 const { v4: uuidv4 } = require("uuid");
 const expressGraphql = require('express-graphql').graphqlHTTP
 const { buildSchema, GraphQLScalarType, Kind } = require("graphql");
-
+const { verifyIfExistsAccountCPF, getBalance } = require("./customerFunctions");
+const { errorName } = require("./config/errorConstant");
+const getErrorCode = require("./config/getErrorCode");
 const app = express();
 
 const customers = [];
@@ -55,32 +57,44 @@ const schema = buildSchema(`
 const resolvers = {
     Date: dateScalar,
     customer({ id }) {
-      return customers.find(item => item.id === id);
+        return customers.find(item => item.id === id);
     },
     customers() {
-      return customers;
+        return customers;
     },
     createCustomer({ name, cpf }) {
-      const customer = {
+        const customer = {
         id: uuidv4(),
         name,
         cpf,
         created_at: new Date(),
         statement: []
-      };
+        };
   
-      customers.push(customer);
-      return customer;
+        const customerAlreadyExists = customers.some(
+            (customerArr) => customerArr.cpf === customer.cpf
+        );
+
+        if (customerAlreadyExists) {
+            throw new Error(errorName.ALREADYEXISTS);
+        }
+
+        customers.push(customer);
+        return customer;
     }
   };
-
 
   app.use(
     "/graphql",
     expressGraphql({
       schema,
       rootValue: resolvers,
-      graphiql: true
+      graphiql: true,
+      customFormatErrorFn: (err) => {
+          console.log(err.message);
+          const error = getErrorCode(err.message)
+          return ({ message: error.message, statusCode: error.statusCode })
+      }
     })
   );
 
