@@ -1,13 +1,13 @@
 const { errorName } = require("./config/errorConstant");
 
-exports.verifyIfExistsAccountCPF = function (customer, customers){
-    const {cpf} = customer;
-
+exports.verifyIfExistsAccountCPF = function (cpf, customers){
     const customerFound = customers.find(customerObj => customerObj.cpf === cpf);
 
     if(!customerFound) {
         throw new Error(errorName.NOTFOUND);
     }
+
+    return customerFound;
 }
 
 exports.getBalance = function(statement){

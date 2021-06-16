@@ -51,6 +51,8 @@ const schema = buildSchema(`
 
     type Mutation {
         createCustomer(name: String!, cpf: Int!): Customer
+        deleteCustomer(cpf: Int!): Customer
+        updateCustomer(cpf: Int!, name: String!): Customer
     }
 `);
 
@@ -81,6 +83,20 @@ const resolvers = {
 
         customers.push(customer);
         return customer;
+    },
+    deleteCustomer({cpf}){
+        const customer = verifyIfExistsAccountCPF(cpf, customers);
+
+        customers.splice(customer, 1);
+
+        return customer;
+    },
+    updateCustomer({cpf, name}){
+        const customer = verifyIfExistsAccountCPF(cpf, customers);
+
+        customer.name = name;
+
+        return customer;
     }
   };
 
@@ -91,7 +107,6 @@ const resolvers = {
       rootValue: resolvers,
       graphiql: true,
       customFormatErrorFn: (err) => {
-          console.log(err.message);
           const error = getErrorCode(err.message)
           return ({ message: error.message, statusCode: error.statusCode })
       }
