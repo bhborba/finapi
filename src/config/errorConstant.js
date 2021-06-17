@@ -1,6 +1,7 @@
 exports.errorName = {
     NOTFOUND: 'NOTFOUND',
-    ALREADYEXISTS: 'ALREADYEXISTS'
+    ALREADYEXISTS: 'ALREADYEXISTS',
+    INSUFFICIENTFUNDS: 'INSUFFICIENTFUNDS'
 }
 
 exports.errorType = {
@@ -10,6 +11,10 @@ exports.errorType = {
     }, 
     ALREADYEXISTS: {
         message: 'Customer already exists',
+        statusCode: 400
+    },
+    INSUFFICIENTFUNDS: {
+        message: 'Insufficient funds!',
         statusCode: 400
     }
 }

@@ -47,6 +47,8 @@ const schema = buildSchema(`
     type Query {
         customer(id: ID!): Customer
         customers: [Customer]
+        statements(cpf: Int!): [Statement]
+        statementsByDate(cpf: Int!, date: Date): [Statement]
     }
 
     type Mutation {
@@ -54,6 +56,7 @@ const schema = buildSchema(`
         deleteCustomer(cpf: Int!): Customer
         updateCustomer(cpf: Int!, name: String!): Customer
         createDeposit(cpf: Int!, description: String!, amount: Float!): Statement
+        createWithdraw(cpf: Int!, amount: Float!): Statement
     }
 `);
 
@@ -111,6 +114,39 @@ const resolvers = {
 
         customer.statements.push(statementOperation);
         return statementOperation;
+    },
+    createWithdraw({cpf, amount}){
+        const customer = verifyIfExistsAccountCPF(cpf, customers);
+
+        const balance = getBalance(customer.statements);
+
+        if(balance < amount) {
+            throw new Error(errorName.INSUFFICIENTFUNDS);
+        }
+
+        const statementOperation = {
+            amount,
+            created_at: new Date(),
+            type: "debit"
+        };
+    
+        customer.statements.push(statementOperation);
+        return statementOperation;
+    },
+    statements({cpf}){
+        const customer = verifyIfExistsAccountCPF(cpf, customers);
+        
+        return customer.statements;
+    },
+    statementsByDate({cpf,date}){
+        const customer = verifyIfExistsAccountCPF(cpf, customers);
+
+        const dateFormat = new Date(date + " 00:00");
+        
+        const statements = customer.statements.filter((statement) => 
+            statement.created_at.toDateString() === new Date(dateFormat).toDateString()
+        )
+        return statements;
     }
   };
 
@@ -121,8 +157,8 @@ const resolvers = {
       rootValue: resolvers,
       graphiql: true,
       customFormatErrorFn: (err) => {
-          const error = getErrorCode(err.message)
-          return ({ message: error.message, statusCode: error.statusCode })
+        const error = getErrorCode(err.message);
+        return ({ message: error ? error.message : err.message, statusCode: error ? error.statusCode : 500 })
       }
     })
   );
