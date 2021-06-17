@@ -49,6 +49,7 @@ const schema = buildSchema(`
         customers: [Customer]
         statements(cpf: Int!): [Statement]
         statementsByDate(cpf: Int!, date: Date): [Statement]
+        balance(cpf: Int!) : Float
     }
 
     type Mutation {
@@ -142,11 +143,18 @@ const resolvers = {
         const customer = verifyIfExistsAccountCPF(cpf, customers);
 
         const dateFormat = new Date(date + " 00:00");
-        
+
         const statements = customer.statements.filter((statement) => 
             statement.created_at.toDateString() === new Date(dateFormat).toDateString()
         )
         return statements;
+    },
+    balance({cpf}){
+        const customer = verifyIfExistsAccountCPF(cpf, customers);
+
+        const balance = getBalance(customer.statements);
+
+        return balance;
     }
   };
 
