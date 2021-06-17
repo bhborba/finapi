@@ -1,0 +1,32 @@
+scalar Date
+
+type Statement {
+    description: String
+    amount: Float
+    created_at: Date
+    type: String
+}
+
+type Customer {
+    cpf: Int
+    name: String
+    id: ID
+    created_at: Date
+    statements: [Statement]
+}
+
+type Query {
+    customer(cpf: Int!): Customer
+    customers: [Customer]
+    statements(cpf: Int!): [Statement]
+    statementsByDate(cpf: Int!, date: Date): [Statement]
+    balance(cpf: Int!) : Float
+}
+
+type Mutation {
+    createCustomer(name: String!, cpf: Int!): Customer
+    deleteCustomer(cpf: Int!): Customer
+    updateCustomer(cpf: Int!, name: String!): Customer
+    createDeposit(cpf: Int!, description: String!, amount: Float!): Statement
+    createWithdraw(cpf: Int!, amount: Float!): Statement
+}
